@@ -8,13 +8,15 @@ Features:
  -
 
 Improvements:
- -
+ - Added Troubleshoot Notification settings page
 
 Other changes:
  -
 
 Bugfix:
- -
+ - Defensive code for notifications issues + check play services as per FCM recommendation (#2266)
+
+
 
 Translations:
  -
