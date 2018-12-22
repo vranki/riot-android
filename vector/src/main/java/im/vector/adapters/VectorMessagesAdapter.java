@@ -110,6 +110,7 @@ import im.vector.util.MatrixURLSpan;
 import im.vector.util.PreferencesManager;
 import im.vector.util.RiotEventDisplay;
 import im.vector.util.VectorImageGetter;
+import im.vector.util.VectorUtils;
 import im.vector.widgets.WidgetsManager;
 
 /**
@@ -1150,7 +1151,7 @@ public class VectorMessagesAdapter extends AbstractMessagesAdapter {
                 tsTextView.setTextColor(ThemeUtils.INSTANCE.getColor(mContext, R.attr.vctr_default_text_light_color));
             }
 
-            tsTextView.setVisibility((((position + 1) == getCount()) || mIsSearchMode || mAlwaysShowTimeStamps) ? View.VISIBLE : View.GONE);
+            tsTextView.setVisibility(View.GONE);
         }
 
         // Sender avatar
@@ -1234,7 +1235,12 @@ public class VectorMessagesAdapter extends AbstractMessagesAdapter {
                         mBackgroundColorSpan,
                         shouldHighlighted);
 
-                bodyTextView.setText(result);
+                int nickColor = VectorUtils.getAvatarColor(row.getSender().getName());
+                String timeStamp = getFormattedTimestamp(event);
+                SpannableString header = new SpannableString(timeStamp + " <" + row.getSenderDisplayName() + "> " + result);
+                header.setSpan(new ForegroundColorSpan(nickColor), timeStamp.length() + 2, timeStamp.length() + 2 + row.getSenderDisplayName().length(), 0);
+
+                bodyTextView.setText(header, TextView.BufferType.SPANNABLE);
 
                 mHelper.applyLinkMovementMethod(bodyTextView);
 
@@ -1256,6 +1262,7 @@ public class VectorMessagesAdapter extends AbstractMessagesAdapter {
 
             for (final TextView tv : textViews) {
                 tv.setTextColor(textColor);
+                tv.setTypeface(Typeface.MONOSPACE);
             }
 
             View textLayout = convertView.findViewById(R.id.messagesAdapter_text_layout);

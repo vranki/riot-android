@@ -14,19 +14,23 @@
         android:id="@+id/messagesAdapter_body_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginLeft="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginRight="1dp"
         android:orientation="horizontal">
 
         <include
             android:id="@+id/messagesAdapter_roundAvatar"
-            layout="@layout/vector_room_round_avatar" />
+            layout="@layout/vector_room_round_avatar"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="invisible"
+            />
 
         <View
             android:id="@+id/messagesAdapter_highlight_message_marker"
-            android:layout_width="6dp"
+            android:layout_width="2dp"
             android:layout_height="match_parent"
             android:layout_marginStart="5dp"
             android:layout_marginLeft="5dp"
@@ -41,17 +45,18 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:paddingBottom="5dp">
-
             <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="invisible"
+                >
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_toStartOf="@+id/message_timestamp_layout"
                     android:layout_toLeftOf="@+id/message_timestamp_layout"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    >
 
                     <include layout="@layout/vector_message_sender" />
                 </LinearLayout>
@@ -130,10 +135,19 @@
 
     <include
         android:id="@+id/messagesAdapter_avatars_list"
-        layout="@layout/vector_message_receipts_list" />
+        layout="@layout/vector_message_receipts_list"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="invisible"/>
 
-    <include layout="@layout/message_separator" />
+    <include layout="@layout/message_separator"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="invisible"/>
 
-    <include layout="@layout/message_read_marker" />
+    <include layout="@layout/message_read_marker"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="invisible"/>
 
 </LinearLayout>
