@@ -8,13 +8,16 @@ Features:
  -
 
 Improvements:
- -
+ - Show userId below display name in member detail screen (#2756)
+ - Clicking on a user and a room avatar opens a new screen with animation to view the avatar in full screen, with zoom capabilities (#2455)
+ - Added Troubleshoot Notification settings page
 
 Other changes:
  -
 
 Bugfix:
- -
+ - Defensive code for notifications issues + check play services as per FCM recommendation (#2266)
+ - Fix many little UI/UX issues (#2769)
 
 Translations:
  -
@@ -1140,7 +1143,7 @@ Other changes:
  -
 
 Bugfix:
- -
+ - Correct issue during signup when a 3PID error would let the signup flow spin forever
 
 Translations:
  -
