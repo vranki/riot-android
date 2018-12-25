@@ -22,11 +22,14 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -66,6 +69,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 import im.vector.Matrix;
@@ -73,6 +77,7 @@ import im.vector.R;
 import im.vector.VectorApp;
 import im.vector.adapters.ParticipantAdapterItem;
 import im.vector.settings.VectorLocale;
+import im.vector.ui.themes.ThemeUtils;
 
 public class VectorUtils {
 
@@ -146,6 +151,36 @@ public class VectorUtils {
     static final private LruCache<String, Bitmap> mAvatarImageByKeyDict = new LruCache<>(20 * 1024 * 1024);
     // the avatars background color
     static final private List<Integer> mColorList = new ArrayList<>(Arrays.asList(0xff76cfa6, 0xff50e2c2, 0xfff4c371));
+    // bitmap containing random pixel noise, used for avatar image background
+    static private Bitmap mNoiseBitmap = null;
+
+    /**
+     * Generates a bitmap with random pixel noise for graphical styling.
+     * The bitmap is generated on first use and stored after that.
+     *
+     * @return a bitmap containing pixel noise
+     */
+    private final static Bitmap noiseBitmap() {
+        if(mNoiseBitmap == null) {
+            final int noiseSize = 20; // Should be enough for non-repeating noise
+            mNoiseBitmap = Bitmap.createBitmap(noiseSize, noiseSize, Bitmap.Config.ARGB_8888);
+
+            Canvas noiseCanvas = new Canvas(mNoiseBitmap);
+            // draw random noise
+            Paint noisePaint = new Paint();
+            Random rnd = new Random();
+
+            for (int x = 0; x < noiseSize; x++) {
+                for (int y = 0; y < noiseSize; y++) {
+                    int randColor = Color.rgb(rnd.nextInt(0xFF),
+                            rnd.nextInt(0xFF), rnd.nextInt(0xFF));
+                    noisePaint.setColor(randColor);
+                    noiseCanvas.drawPoint(x, y, noisePaint);
+                }
+            }
+        }
+        return mNoiseBitmap;
+    }
 
     /**
      * Provides the avatar background color from a text.
@@ -180,24 +215,46 @@ public class VectorUtils {
     private static Bitmap createAvatarThumbnail(Context context, int backgroundColor, String text) {
         float densityScale = context.getResources().getDisplayMetrics().density;
         // the avatar size is 42dp, convert it in pixels.
-        return createAvatar(backgroundColor, text, (int) (42 * densityScale));
+        return createAvatar(context, backgroundColor, text, (int) (42 * densityScale));
     }
 
     /**
      * Create an avatar bitmap from a text.
      *
+     * @param context         the context
      * @param backgroundColor the background color.
      * @param text            the text to display.
      * @param pixelsSide      the avatar side in pixels
      * @return the generated bitmap
      */
-    private static Bitmap createAvatar(int backgroundColor, String text, int pixelsSide) {
+    private static Bitmap createAvatar(Context context, int backgroundColor, String text, int pixelsSide) {
         android.graphics.Bitmap.Config bitmapConfig = android.graphics.Bitmap.Config.ARGB_8888;
 
         Bitmap bitmap = Bitmap.createBitmap(pixelsSide, pixelsSide, bitmapConfig);
         Canvas canvas = new Canvas(bitmap);
 
+        // draw the solid background
         canvas.drawColor(backgroundColor);
+
+        // Shade the avatar background with a circular gradient of background color
+        int shadeColor = ThemeUtils.INSTANCE.getColor(context, R.attr.vctr_riot_primary_background_color);
+
+        final int[] colors = new int[] {backgroundColor, backgroundColor, shadeColor};
+        final float[] stops = new float[] {0.0f, 0.4f, 1.0f};
+        Paint backgroundPaint = new Paint();
+        backgroundPaint.setColor(backgroundColor);
+        backgroundPaint.setStrokeWidth(1);
+        backgroundPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        backgroundPaint.setAlpha(128);
+        backgroundPaint.setShader(new RadialGradient(pixelsSide / 2,
+                pixelsSide / 2,pixelsSide / 2,
+                colors, stops, Shader.TileMode.MIRROR));
+        canvas.drawCircle(pixelsSide / 2, pixelsSide / 2, pixelsSide, backgroundPaint);
+
+        // paint random pixel noise over the background for rough effect
+        backgroundPaint.setAlpha(20);
+        backgroundPaint.setShader(new BitmapShader(noiseBitmap(), Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
+        canvas.drawRect(new Rect(0,0,canvas.getWidth(),canvas.getHeight()), backgroundPaint);
 
         // prepare the text drawing
         Paint textPaint = new Paint();
@@ -274,16 +331,21 @@ public class VectorUtils {
     public static Bitmap getAvatar(Context context, int backgroundColor, String aText, boolean create) {
         String firstChar = getInitialLetter(aText);
         String key = firstChar + "_" + backgroundColor;
-
         // check if the avatar is already defined
         Bitmap thumbnail = mAvatarImageByKeyDict.get(key);
-
         if ((null == thumbnail) && create) {
             thumbnail = VectorUtils.createAvatarThumbnail(context, backgroundColor, firstChar);
             mAvatarImageByKeyDict.put(key, thumbnail);
         }
 
         return thumbnail;
+    }
+
+    /**
+     * Clears the avatar image cache, forcing regenerating images. Call if UI theme is changed.
+     */
+    public static void clearAvatarImageCache() {
+        mAvatarImageByKeyDict.evictAll();
     }
 
     /**
@@ -404,7 +466,7 @@ public class VectorUtils {
 
                 if (pixelsSide > 0) {
                     // get the avatar bitmap.
-                    bitmap = VectorUtils.createAvatar(VectorUtils.getAvatarColor(roomId), getInitialLetter(displayName), pixelsSide);
+                    bitmap = VectorUtils.createAvatar(context, VectorUtils.getAvatarColor(roomId), getInitialLetter(displayName), pixelsSide);
                 }
 
                 // until the dedicated avatar is loaded.

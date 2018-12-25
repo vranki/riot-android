@@ -32,6 +32,7 @@ import android.view.Menu
 import im.vector.R
 import im.vector.VectorApp
 import im.vector.activity.VectorGroupDetailsActivity
+import im.vector.util.VectorUtils
 import java.util.*
 
 /**
@@ -77,7 +78,7 @@ object ThemeUtils {
             THEME_STATUS_VALUE -> VectorApp.getInstance().setTheme(R.style.AppTheme_Status)
             else -> VectorApp.getInstance().setTheme(R.style.AppTheme_Light)
         }
-
+        VectorUtils.clearAvatarImageCache();
         mColorByAttr.clear()
     }
 
